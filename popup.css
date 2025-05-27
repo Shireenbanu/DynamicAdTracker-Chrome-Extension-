@@ -1,0 +1,132 @@
+    body {
+        width: 350px;
+        padding: 15px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: #f5f5f5;
+      }
+      
+      .container {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        color: #333;
+        text-align: center;
+      }
+      
+      .controls {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      
+      .btn {
+        padding: 8px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s;
+      }
+      
+      .btn.primary {
+        background-color: #4285f4;
+        color: white;
+      }
+      
+      .btn.secondary {
+        background-color: #e0e0e0;
+        color: #333;
+      }
+      
+      .btn.tertiary {
+        background-color: #f1f1f1;
+        color: #555;
+      }
+      
+      .btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      
+      .status {
+        padding: 8px;
+        border-radius: 4px;
+        display: none;
+        font-size: 14px;
+      }
+      
+      .status.info {
+        background-color: #e3f2fd;
+        color: #1976d2;
+        display: block;
+      }
+      
+      .status.success {
+        background-color: #e8f5e9;
+        color: #388e3c;
+        display: block;
+      }
+      
+      .status.warning {
+        background-color: #fff8e1;
+        color: #ffa000;
+        display: block;
+      }
+      
+      .status.error {
+        background-color: #ffebee;
+        color: #d32f2f;
+        display: block;
+      }
+      
+      .ad-list {
+        display: none;
+      }
+      
+      .ad-list h3 {
+        margin: 0 0 10px 0;
+        font-size: 16px;
+      }
+      
+      .ad-list-container {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        padding: 10px;
+        background: white;
+      }
+      
+      .ad-item {
+        padding: 8px;
+        border-bottom: 1px solid #eee;
+        font-size: 13px;
+      }
+      
+      .ad-item:last-child {
+        border-bottom: none;
+      }
+      
+      .ad-info {
+        display: flex;
+        justify-content: space-between;
+      }
+      
+      .ad-type {
+        font-weight: 500;
+      }
+      
+      .ad-size {
+        color: #666;
+        font-family: monospace;
+      }
+      
+      .ad-source {
+        color: #999;
+        font-size: 12px;
+      }
