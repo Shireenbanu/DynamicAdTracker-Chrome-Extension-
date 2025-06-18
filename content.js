@@ -1,234 +1,220 @@
-// content.js - Improved Precision Ad Detector
+// content.js - Static Ad Detector (Organized)
+
+// ============================================================================
+// CONFIGURATION - Ad Detection Patterns
+// ============================================================================
 const AD_SIGNATURES = {
-  // Direct ad platform identifiers
-  adServerPatterns: [
-    /ads?\.(doubleclick|google|facebook|amazon)\./i,
-    /(googleads|doubleclick)\.g\.doubleclick\.net/i,
-    /pagead2\.googlesyndication\.com/i,
-    /adservice\.google\./i,
-    /securepubads\.g\.doubleclick\.net/i,
-    /tpc\.googlesyndication\.com/i
-  ],
-     
-  // Unambiguous ad selectors
-  definitiveSelectors: [
-    'iframe[src*="ads"]',
-    'div[data-ad-unit]',
-    'div[data-ad-client]',
-    'div[data-ad-slot]',
-    'div[data-testid="ad"]',
-    'div[aria-label*="Ad"]',
-    'ins.adsbygoogle',
-    'div[id^="google_ads_iframe"]',
-    'div[id^="div-gpt-ad"]',
-    'div[class*="AdContainer"]',
-    'div[class*="ad-container"]',
-    'div[class*="advertisement"]'
-  ]
-};
-
-function isDefinitiveAd(element) {
-  // Check iframe sources
-  if (element.tagName === 'IFRAME') {
-    const src = element.getAttribute('src') || '';
-    return AD_SIGNATURES.adServerPatterns.some(pattern => pattern.test(src));
-  }
-     
-  // Check data attributes
-  if (element.hasAttribute('data-ad-unit') ||
-      element.hasAttribute('data-ad-client') ||
-      element.hasAttribute('data-ad-slot')) {
-    return true;
-  }
-     
-  // Check ID/class patterns
-  const id = element.getAttribute('id') || '';
-  const className = element.getAttribute('class') || '';
-     
-  return AD_SIGNATURES.definitiveSelectors.some(selector => {
-    try {
-      return element.matches(selector);
-    } catch (e) {
-      return false;
+    // Direct ad platform identifiers
+    adServerPatterns: [
+      /ads?\.(doubleclick|google|facebook|amazon)\./i,
+      /(googleads|doubleclick)\.g\.doubleclick\.net/i,
+      /pagead2\.googlesyndication\.com/i,
+      /adservice\.google\./i,
+      /securepubads\.g\.doubleclick\.net/i,
+      /tpc\.googlesyndication\.com/i
+    ],
+    
+    // Known HTML patterns/selectors for ads
+    definitiveSelectors: [
+      'iframe[src*="ads"]',
+      'div[data-ad-unit]',
+      'div[data-ad-client]',
+      'div[data-ad-slot]',
+      'div[data-testid="ad"]',
+      'div[aria-label*="Ad"]',
+      'ins.adsbygoogle',
+      'div[id^="google_ads_iframe"]',
+      'div[id^="div-gpt-ad"]',
+      'div[class*="AdContainer"]',
+      'div[class*="ad-container"]',
+      'div[class*="advertisement"]'
+    ]
+  };
+  
+  // ============================================================================
+  // AD DETECTION FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Check if an element is definitively an ad
+   * @param {Element} element - DOM element to check
+   * @returns {boolean} - true if element is an ad
+   */
+  function isDefinitiveAd(element) {
+    // Check iframe sources
+    if (element.tagName === 'IFRAME') {
+      const src = element.getAttribute('src') || '';
+      return AD_SIGNATURES.adServerPatterns.some(pattern => pattern.test(src));
     }
-  });
-}
-
-function highlightAd(element) {
-  if (element._adHighlighted) return;
-  element._adHighlighted = true;
-     
-  // Store original styles to avoid conflicts
-  const originalPosition = element.style.position;
-  const originalZIndex = element.style.zIndex;
-  
-  // Create overlay without disrupting DOM structure
-  const overlay = document.createElement('div');
-  overlay.className = 'ad-detector-overlay';
-  overlay.style.cssText = `
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    border: 2px solid #ff0000 !important;
-    z-index: 999999 !important;
-    pointer-events: none !important;
-    box-sizing: border-box !important;
-    background: rgba(255, 0, 0, 0.1) !important;
-  `;
-     
-  const label = document.createElement('div');
-  label.className = 'ad-detector-label';
-  label.textContent = 'AD';
-  label.style.cssText = `
-    position: absolute !important;
-    top: -2px !important;
-    right: -2px !important;
-    background: #ff0000 !important;
-    color: white !important;
-    padding: 2px 6px !important;
-    font-size: 10px !important;
-    font-family: Arial, sans-serif !important;
-    font-weight: bold !important;
-    line-height: 1 !important;
-    z-index: 1000000 !important;
-    border-radius: 0 0 0 3px !important;
-  `;
-     
-  overlay.appendChild(label);
-  
-  // Ensure element can contain absolutely positioned overlay
-  if (getComputedStyle(element).position === 'static') {
-    element.style.position = 'relative';
-  }
-  
-  // Add overlay to element
-  element.appendChild(overlay);
-  
-  // Store reference for cleanup
-  element._adOverlay = overlay;
-}
-
-function scanForAds() {
-  // Use more specific selectors to reduce false positives
-  const candidates = document.querySelectorAll(`
-    iframe[src*="ads"],
-    iframe[src*="doubleclick"],
-    iframe[src*="googlesyndication"],
-    div[data-ad-unit],
-    div[data-ad-client],
-    div[data-ad-slot],
-    div[data-testid*="ad"],
-    div[aria-label*="ad" i],
-    ins.adsbygoogle,
-    div[id^="google_ads_iframe"],
-    div[id^="div-gpt-ad"],
-    div[class*="AdContainer"],
-    div[class*="ad-container"],
-    div[class*="advertisement"]
-  `);
-
-  candidates.forEach(element => {
-    if (isDefinitiveAd(element)) {
-      // Small delay to allow ad to start loading
-      setTimeout(() => highlightAd(element), 100);
+    
+    // Check data attributes
+    if (element.hasAttribute('data-ad-unit') ||
+        element.hasAttribute('data-ad-client') ||
+        element.hasAttribute('data-ad-slot')) {
+      return true;
     }
-  });
-}
-
-function handleDynamicAds() {
-  // Watch for Google AdSense specifically
-  if (window.adsbygoogle) {
-    const originalPush = window.adsbygoogle.push;
-    window.adsbygoogle.push = function(...args) {
-      const result = originalPush.apply(this, args);
-      // Scan for new ads after AdSense processes
-      setTimeout(scanForAds, 500);
-      return result;
-    };
-  }
-  
-  // Watch for GPT (Google Publisher Tag) ads
-  if (window.googletag && window.googletag.cmd) {
-    window.googletag.cmd.push(() => {
-      window.googletag.pubads().addEventListener('slotRenderEnded', () => {
-        setTimeout(scanForAds, 100);
-      });
+    
+    // Check selectors
+    return AD_SIGNATURES.definitiveSelectors.some(selector => {
+      try {
+        return element.matches(selector);
+      } catch (e) {
+        return false;
+      }
     });
   }
-}
-
-// Initial scan with delays to catch lazy-loaded ads
-function performInitialScan() {
-  scanForAds(); // Immediate scan
-  setTimeout(scanForAds, 1000); // 1 second delay
-  setTimeout(scanForAds, 3000); // 3 second delay
-  setTimeout(scanForAds, 5000); // 5 second delay
-}
-
-// Enhanced MutationObserver
-const observer = new MutationObserver(mutations => {
-  let shouldScan = false;
   
-  mutations.forEach(mutation => {
-    // Check for added nodes
-    mutation.addedNodes.forEach(node => {
-      if (node.nodeType === 1) { // Element node
-        // Check if the node itself is an ad
-        if (isDefinitiveAd(node)) {
-          setTimeout(() => highlightAd(node), 100);
-        }
+  // ============================================================================
+  // HIGHLIGHTING FUNCTIONS
+  // ============================================================================
+  
+  /**
+   * Add visual highlight to an ad element
+   * @param {Element} element - DOM element to highlight
+   */
+  function highlightAd(element) {
+    if (element._adHighlighted) return;
+    element._adHighlighted = true;
+    
+    // Create overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'ad-detector-overlay';
+    overlay.style.cssText = `
+      position: absolute !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      border: 2px solid #ff0000 !important;
+      z-index: 999999 !important;
+      pointer-events: none !important;
+      box-sizing: border-box !important;
+      background: rgba(255, 0, 0, 0.1) !important;
+    `;
+    
+    // Create label
+    const label = document.createElement('div');
+    label.className = 'ad-detector-label';
+    label.textContent = 'AD';
+    label.style.cssText = `
+      position: absolute !important;
+      top: -2px !important;
+      right: -2px !important;
+      background: #ff0000 !important;
+      color: white !important;
+      padding: 2px 6px !important;
+      font-size: 10px !important;
+      font-family: Arial, sans-serif !important;
+      font-weight: bold !important;
+      line-height: 1 !important;
+      z-index: 1000000 !important;
+      border-radius: 0 0 0 3px !important;
+    `;
+    
+    overlay.appendChild(label);
+    
+    // Ensure element can contain absolutely positioned overlay
+    if (getComputedStyle(element).position === 'static') {
+      element.style.position = 'relative';
+    }
+    
+    element.appendChild(overlay);
+    element._adOverlay = overlay;
+  }
+  
+  // ============================================================================
+  // MAIN SCANNING FUNCTION
+  // ============================================================================
+  
+  /**
+   * Scan the page for ads, extract coordinates, and highlight them
+   */
+  function scanForAds() {
+    // Find all potential ad elements using CSS selector
+    const candidates = document.querySelectorAll(`
+      iframe[src*="ads"],
+      iframe[src*="doubleclick"],
+      iframe[src*="googlesyndication"],
+      div[data-ad-unit],
+      div[data-ad-client],
+      div[data-ad-slot],
+      div[data-testid*="ad"],
+      div[aria-label*="ad" i],
+      ins.adsbygoogle,
+      div[id^="google_ads_iframe"],
+      div[id^="div-gpt-ad"],
+      div[class*="AdContainer"],
+      div[class*="ad-container"],
+      div[class*="advertisement"]
+    `);
+    
+    const adElements = [];
+    
+    // Process each candidate element
+    candidates.forEach(element => {
+      if (isDefinitiveAd(element)) {
+        console.log('Found ad element:', element);
         
-        // Check for ad-related attributes or content
-        if (node.querySelector && (
-          node.querySelector('iframe[src*="ads"]') ||
-          node.querySelector('ins.adsbygoogle') ||
-          node.querySelector('div[data-ad-unit]') ||
-          node.classList.contains('adsbygoogle') ||
-          node.id.includes('google_ads')
-        )) {
-          shouldScan = true;
+        const rect = element.getBoundingClientRect();
+        console.log('Element coordinates:', rect);
+        
+        // Only process elements with valid dimensions
+        if (rect.width > 0 && rect.height > 0) {
+          const adPosition = {
+            top: Math.round(rect.top),
+            left: Math.round(rect.left),
+            width: Math.round(rect.width),
+            height: Math.round(rect.height),
+            dpr: window.devicePixelRatio
+          };
+          
+          adElements.push(adPosition);
+          highlightAd(element);
+        } else {
+          console.warn('Skipping element with invalid dimensions:', element);
         }
       }
     });
     
-    // Check for attribute changes that might indicate ad loading
-    if (mutation.type === 'attributes' && 
-        (mutation.attributeName === 'src' || 
-         mutation.attributeName === 'data-ad-status' ||
-         mutation.attributeName.startsWith('data-ad'))) {
-      shouldScan = true;
+    // Send results to background script if ads found
+    if (adElements.length > 0) {
+      console.log('Sending ad elements:', adElements);
+      chrome.runtime.sendMessage({ adElements }, (response) => {
+        if (chrome.runtime.lastError) {
+          console.error('Error sending message:', chrome.runtime.lastError);
+        } else {
+          console.log("Got response:", response);
+        }
+      });
+    } else {
+      console.log('No valid ad elements found');
     }
-  });
-  
-  if (shouldScan) {
-    setTimeout(scanForAds, 200);
   }
-});
-
-// Wait for DOM to be ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    performInitialScan();
-    handleDynamicAds();
-  });
-} else {
-  performInitialScan();
-  handleDynamicAds();
-}
-
-// Start observing after initial setup
-setTimeout(() => {
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-    attributes: true,
-    attributeFilter: ['src', 'data-ad-status', 'data-ad-unit', 'data-ad-client', 'data-ad-slot']
-  });
-}, 1000);
-
-// Cleanup function
-window.addEventListener('beforeunload', () => {
-  observer.disconnect();
-});
+  
+  // ============================================================================
+  // INITIALIZATION
+  // ============================================================================
+  
+  /**
+   * Initialize ad detection system
+   */
+  function initializeAdDetection() {
+    console.log('Initializing ad detection...');
+    
+    // Wait 5 seconds to ensure all ads are loaded
+    setTimeout(() => {
+      console.log('Starting ad scan...');
+      scanForAds();
+    }, 5000);
+  }
+  
+  // ============================================================================
+  // AUTO-START WHEN DOM IS READY
+  // ============================================================================
+  
+  // Start detection when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeAdDetection);
+  } else {
+    initializeAdDetection();
+  }
