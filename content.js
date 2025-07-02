@@ -98,7 +98,8 @@ function getAllAdsForScreenshots() {
     
     const ads = [];
     let adIndex = 0;
-    
+
+      
     candidates.forEach(element => {
         if (isDefinitiveAd(element)) {
             const rect = element.getBoundingClientRect();
@@ -131,13 +132,14 @@ function getAllAdsForScreenshots() {
                                        rect.left >= 0 && rect.right <= window.innerWidth,
                     // Device pixel ratio for high-DPI screens
                     dpr: window.devicePixelRatio || 1
+
                 };
                 
                 ads.push(adData);
                 console.log(`Found ad ${adIndex}:`, adData);
                 adIndex++;
             } else {
-                console.warn('Skipping ad element with invalid dimensions:', element);
+                console.log('Skipping ad element with invalid dimensions:', element);
             }
         }
     });

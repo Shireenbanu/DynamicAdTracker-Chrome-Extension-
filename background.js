@@ -127,8 +127,8 @@ chrome.action.onClicked.addListener(async (tab) => {
       await sleep(100); // Small delay between downloads
     }
     
-    // Create and download summary
-    await downloadSummary(successful, pageInfo, timestamp);
+    // Create and download summary, uncomment this if you ever want to download the ad summary
+    // await downloadSummary(successful, pageInfo, timestamp);
     
     console.log(`🎉 Downloaded ${successful.length} ad screenshots!`);
   }
@@ -140,8 +140,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     try {
       const adInfo = result.originalAd;
       const adSize = `${adInfo.width}x${adInfo.height}`;
-      const filename = `ad_screenshots/${pageInfo.domain}/ad_${sequenceNumber}_${adSize}_${timestamp}.png`;
-      
+      const filename = `ad_screenshots/${pageInfo.domain}/ad_${sequenceNumber}_${adSize}_${Date.now()}.png`;
       // Use the screenshot data URL directly with Chrome Downloads API
       await chrome.downloads.download({
         url: result.screenshot, // Data URL can be used directly
